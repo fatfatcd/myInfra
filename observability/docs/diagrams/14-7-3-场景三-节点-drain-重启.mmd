@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    participant OP as 运维
+    participant N as worker 节点
+    participant AG as otel-agent
+    participant FS as file_storage (hostPath)
+
+    OP->>N: kubectl drain
+    N->>AG: SIGTERM（DaemonSet Pod 默认不被驱逐）
+    Note over AG: 节点重启时 Agent 退出
+    AG->>FS: 刷写 offset 与队列
+    N->>N: 重启
+    N->>AG: Agent 重新启动
+    AG->>FS: 读取 offset
+    AG->>AG: 从断点继续读取 /var/log/pods
+    Note over AG: 已轮转删除的文件无法补读<br/>需保证 kubelet containerLogMaxSize / MaxFiles 足够

@@ -1,0 +1,28 @@
+flowchart LR
+    subgraph ot["OT 区（产线设备 / EAP）"]
+        eap["EAP / 设备网关<br/>（二期）"]
+    end
+    subgraph dmz["工业 DMZ"]
+        relay["otel-relay<br/>（二期，单向上送）"]
+    end
+    subgraph it["IT 数据中心"]
+        subgraph k8sz["业务集群网段"]
+            ag["otel-agent<br/>hostPort 4317/4318"]
+            gw["otel-gateway<br/>ClusterIP 4317"]
+        end
+        subgraph bz["后端网段"]
+            os["OpenSearch :9200"]
+            kf["Kafka :9093 (TLS)"]
+            vm["VictoriaMetrics :8428"]
+            ui["Grafana :3000<br/>Dashboards :5601"]
+        end
+        ops["运维 / 研发终端"]
+    end
+
+    eap -. "OTLP 4318" .-> relay
+    relay -. "OTLP 4317 mTLS" .-> gw
+    ag -- "4317 集群内" --> gw
+    gw -- "9200 HTTPS" --> os
+    gw -- "9093 TLS" --> kf
+    gw -- "8428 remote_write" --> vm
+    ops -- "443 经反向代理 / SSO" --> ui

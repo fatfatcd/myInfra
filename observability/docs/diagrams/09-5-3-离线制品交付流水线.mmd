@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph inet["外网区"]
+        s1["拉取镜像与 Chart<br/>otelcol-contrib / OpenSearch / VM / Kafka / Grafana"]
+        s2["下载 opentelemetry-javaagent.jar"]
+        s3["漏洞扫描 + 生成 SHA256 清单"]
+    end
+    subgraph ferry["摆渡区"]
+        f1["离线介质 / 单向网闸"]
+    end
+    subgraph intra["内网区"]
+        h1["Harbor<br/>镜像 + OCI Helm Chart"]
+        h2["Maven 私服 / 制品库<br/>javaagent.jar"]
+        h3["校验 SHA256"]
+        d1["1.28 集群"]
+        d2["1.35 集群"]
+        d3["后端区主机"]
+    end
+    s1 --> s3
+    s2 --> s3
+    s3 --> f1 --> h3
+    h3 --> h1
+    h3 --> h2
+    h1 --> d1
+    h1 --> d2
+    h2 --> d3
+    h1 --> d3

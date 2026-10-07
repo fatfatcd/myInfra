@@ -1,0 +1,14 @@
+flowchart LR
+    in["otlp receiver"] --> ml["memory_limiter"] --> tf["transform / attributes<br/>脱敏、过滤"] --> bt["batch"]
+
+    bt --> sw{"kafka.enabled ?"}
+    sw -- "false（模式 A）" --> e1["opensearch exporter<br/>traces + logs<br/>mapping: otel-v1"]
+    sw -- "false（模式 A）" --> e2["prometheusremotewrite<br/>metrics"]
+    sw -- "true（模式 B）" --> e3["kafka exporter<br/>encoding: otlp_proto"]
+
+    e1 --> os[("OpenSearch")]
+    e2 --> vm[("VictoriaMetrics")]
+    e3 --> kf[("Kafka")]
+    kf --> wr["otel-writer<br/>kafka receiver"]
+    wr --> os
+    wr --> vm

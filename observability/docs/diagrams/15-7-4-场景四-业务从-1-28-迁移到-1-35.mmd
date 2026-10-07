@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph p1["阶段 1"]
+        x1["1.28 部署 OTel 链路<br/>与 Fluent Bit 并行"]
+    end
+    subgraph p2["阶段 2"]
+        x2["1.35 新集群<br/>同一 Chart，仅改集群名"]
+    end
+    subgraph p3["阶段 3"]
+        x3["业务按批次迁移<br/>按 k8s.cluster.name 对比"]
+    end
+    subgraph p4["阶段 4"]
+        x4["1.28 下线<br/>Fluent Bit 停写<br/>旧索引按 ISM 过期"]
+    end
+    p1 --> p2 --> p3 --> p4

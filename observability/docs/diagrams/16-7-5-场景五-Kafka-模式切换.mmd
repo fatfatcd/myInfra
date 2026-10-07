@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> 模式A直写
+    模式A直写 --> 准备Kafka : 评估需要长时间缓冲
+    准备Kafka --> 双写验证 : 部署 writer，创建 topic
+    双写验证 --> 模式B经Kafka : 数据量与延迟比对通过
+    模式B经Kafka --> 模式A直写 : Kafka 故障或下线（回滚 values）
+    note right of 双写验证
+        Gateway 同时配置两个 exporter
+        writer 写入临时索引用于比对
+    end note

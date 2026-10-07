@@ -1,0 +1,15 @@
+flowchart TB
+    subgraph s1["① 指标：Grafana"]
+        direction LR
+        a["告警触发<br/>order-service P99 > 2s"] --> b["点击 exemplar<br/>获得 trace_id"]
+    end
+    subgraph s2["② 链路：Trace Analytics"]
+        direction LR
+        c["查看瀑布图"] --> d["定位慢 Span<br/>stock-service JDBC 1.8s"]
+    end
+    subgraph s3["③ 日志：OpenSearch"]
+        direction LR
+        e["按 trace_id + span_id<br/>检索 otel-v1-logs"] --> f["看到 SQL 超时日志<br/>与 Pod / 节点信息"]
+    end
+    s1 -->|trace_id| s2
+    s2 -->|trace_id + span_id| s3

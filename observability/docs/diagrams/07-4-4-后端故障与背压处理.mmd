@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant AG as otel-agent
+    participant GW as otel-gateway
+    participant OS as OpenSearch
+
+    GW->>OS: bulk 写入
+    OS--xGW: 超时 / 503
+    GW->>GW: retry_on_failure（指数退避）
+    GW->>GW: 写入 sending_queue（持久化到 PVC）
+    alt 队列未满
+        GW-->>AG: 正常接收
+        Note over GW: OpenSearch 恢复后自动重放
+    else 队列已满
+        GW--xAG: 拒绝（ResourceExhausted）
+        AG->>AG: 本地 sending_queue 缓冲（hostPath）
+        AG->>AG: 日志：filelog 暂停推进 offset
+        Note over AG: 日志留在节点文件中，不丢失<br/>（受 kubelet 日志轮转上限约束）
+        Note over AG: Span / Metric 超出本地队列后丢弃<br/>应用不受影响
+    end

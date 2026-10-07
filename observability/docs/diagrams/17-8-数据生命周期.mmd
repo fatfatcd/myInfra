@@ -1,0 +1,6 @@
+flowchart LR
+    w([写入]) --> lh["日志 hot<br/>0–7 天"]
+    lh -->|"7 天后<br/>force_merge + 只读"| lw["日志 warm<br/>7–30 天"]
+    lw -->|30 天后| d1([删除])
+    w --> th["Trace hot<br/>0–7 天"]
+    th -->|"7 天后（可配置）"| d2([删除])

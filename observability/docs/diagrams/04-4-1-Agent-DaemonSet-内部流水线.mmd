@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph agent["otel-agent（每节点 1 个）"]
+        direction LR
+        rx1["otlp<br/>:4317 / :4318"]
+        rx2["filelog<br/>container → json_parser → trace_parser"]
+        rx3["kubeletstats<br/>hostmetrics"]
+        ml["memory_limiter"]
+        k8s["k8sattributes"]
+        res["resource<br/>k8s.cluster.name"]
+        bt["batch"]
+        ex["otlp exporter<br/>sending_queue + file_storage"]
+        fs[("file_storage<br/>hostPath<br/>offset + 队列")]
+
+        rx1 --> ml
+        rx2 --> ml
+        rx3 --> ml
+        ml --> k8s --> res --> bt --> ex
+        rx2 <-. "读写 offset" .-> fs
+        ex <-. "持久化队列" .-> fs
+    end
+    ex -- "OTLP gRPC" --> gw["otel-gateway Service"]

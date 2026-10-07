@@ -1,0 +1,28 @@
+flowchart LR
+    user["研发 / 运维 / SRE"]
+    subgraph biz["业务 K8s 集群（RKE2 1.28 / 1.35）"]
+        app["Spring Boot 应用<br/>+ OTel javaagent"]
+        col["OTel Collector<br/>Agent + Gateway"]
+        ks["KubeSphere 3.4.1<br/>Fluent Bit（过渡期保留）"]
+    end
+    subgraph obs["可观测后端区（集群外）"]
+        kafka["Kafka（可选）"]
+        os["OpenSearch<br/>Logs + Traces"]
+        vm["VictoriaMetrics<br/>Metrics"]
+        ui["Grafana<br/>OpenSearch Dashboards"]
+    end
+    harbor["Harbor 私有仓库"]
+    legacy["MES / EAP 等遗留系统"]
+
+    app -- "OTLP" --> col
+    app -- "stdout JSON" --> col
+    col --> kafka
+    col --> os
+    col --> vm
+    kafka --> os
+    ks -. "旧链路，并行至下线" .-> os
+    user --> ui
+    ui --> os
+    ui --> vm
+    harbor -. "镜像 / Chart" .-> biz
+    legacy -. "二期接入" .-> col

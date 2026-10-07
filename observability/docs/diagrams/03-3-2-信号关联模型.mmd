@@ -1,0 +1,39 @@
+classDiagram
+    class Resource {
+        service.name
+        service.version
+        deployment.environment
+        k8s.cluster.name
+        k8s.namespace.name
+        k8s.pod.name
+        k8s.deployment.name
+    }
+    class Span {
+        trace_id
+        span_id
+        parent_span_id
+        name
+        kind
+        status
+        start_time / end_time
+        attributes
+    }
+    class LogRecord {
+        timestamp
+        severity
+        body
+        trace_id
+        span_id
+        attributes.request_id
+    }
+    class MetricPoint {
+        name
+        labels
+        value
+        exemplar.trace_id
+    }
+    Resource "1" --> "*" Span : 产生
+    Resource "1" --> "*" LogRecord : 产生
+    Resource "1" --> "*" MetricPoint : 产生
+    Span "1" --> "*" LogRecord : trace_id + span_id 关联
+    MetricPoint ..> Span : exemplar 跳转

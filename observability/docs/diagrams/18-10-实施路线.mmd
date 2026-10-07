@@ -1,0 +1,20 @@
+gantt
+    title 实施路线（示意，按实际排期调整）
+    dateFormat YYYY-MM-DD
+    axisFormat %m-%d
+    todayMarker off
+    section 准备
+    现状盘点与容量统计          :a1, 2026-10-12, 5d
+    离线制品同步与版本锁定      :a2, after a1, 5d
+    后端区部署 OpenSearch/VM    :a3, after a1, 10d
+    section 一期：1.28 试点
+    Collector Agent/Gateway 部署 :b1, after a2, 5d
+    Java 基础镜像与日志模板      :b2, after a2, 5d
+    试点服务改造与关联验证       :b3, after b1, 7d
+    section 二期：推广
+    全量服务接入                 :c1, after b3, 20d
+    大盘、告警、ISM 上线         :c2, after b3, 10d
+    Fluent Bit 停写              :c3, after c1, 3d
+    section 三期：1.35
+    1.35 集群部署同一套链路      :d1, after c1, 5d
+    业务迁移与对比验证           :d2, after d1, 20d

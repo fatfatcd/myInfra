@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant C as 客户端 / 网关
+    participant A as order-service<br/>(javaagent)
+    participant B as stock-service<br/>(javaagent)
+    participant AG as otel-agent<br/>(本节点)
+    participant GW as otel-gateway
+    participant OS as OpenSearch
+
+    C->>A: HTTP 请求（无 traceparent）
+    Note over A: Agent 生成 trace_id=4bf9…<br/>写入 MDC
+    A->>A: log.info() → stdout JSON 含 trace_id
+    A->>B: Feign 调用，Header 携带 traceparent
+    Note over B: 继承同一 trace_id，新建 span_id
+    B->>B: log.info() → stdout JSON 含 trace_id
+    B-->>A: 响应
+    A-->>C: 响应
+    A->>AG: OTLP 导出 Span
+    B->>AG: OTLP 导出 Span
+    AG->>AG: filelog 读取两条日志<br/>trace_parser 写入 LogRecord.TraceID
+    AG->>GW: Spans + Logs（带 k8s 元数据）
+    GW->>OS: 写入 otel-v1-apm-span / otel-v1-logs
+    Note over OS: 按 traceId 同时查到 2 个 Span 和 2 条日志

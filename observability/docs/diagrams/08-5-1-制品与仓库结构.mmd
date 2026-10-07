@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph repo["Git 仓库：observability-platform"]
+        r0(["/"])
+        c0["charts/"]
+        c1["values-common.yaml<br/>公共配置"]
+        c2["values-agent.yaml"]
+        c3["values-gateway-direct.yaml<br/>模式 A"]
+        c4["values-gateway-kafka.yaml<br/>模式 B"]
+        c5["clusters/<br/>fab-k8s-128.yaml / fab-k8s-135.yaml<br/>仅含集群名、端点等差异"]
+        c6["backend/opensearch/<br/>ISM 策略、索引模板、角色"]
+        c7["backend/writer/<br/>otel-writer systemd 配置"]
+        c8["dashboards/<br/>Grafana JSON"]
+        r0 --> c0
+        c0 --> c1 & c2 & c3 & c4
+        r0 --> c5 & c6 & c7 & c8
+    end
+    subgraph base["Git 仓库：java-base-image"]
+        b1["Dockerfile<br/>JDK + opentelemetry-javaagent.jar"]
+        b2["logback-spring.xml 模板<br/>JSON + trace_id"]
+    end
+    subgraph appRepo["业务仓库"]
+        a1["pom.xml<br/>仅依赖 opentelemetry-api<br/>+ instrumentation-annotations"]
+        a2["Deployment env<br/>OTEL_* 变量"]
+    end
+    k8s["业务集群"]
+    b1 -- "FROM 基础镜像" --> a2
+    b2 -- "复制模板" --> a1
+    c5 -- "helm upgrade" --> k8s
+    a2 -- "CI 发布" --> k8s

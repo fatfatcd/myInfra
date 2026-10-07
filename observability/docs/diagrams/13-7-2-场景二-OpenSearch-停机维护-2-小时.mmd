@@ -1,0 +1,10 @@
+flowchart TB
+    start["OpenSearch 计划停机"] --> q{"Kafka 模式?"}
+    q -- "模式 A" --> a1["Gateway 持久化队列缓冲"]
+    a1 --> a2{"队列 PVC 能否容纳 2 小时数据?"}
+    a2 -- "能" --> ok1["恢复后自动重放，无丢失"]
+    a2 -- "不能" --> a3["Agent 本地缓冲<br/>日志停在节点文件"]
+    a3 --> a4["Span / Metric 部分丢失<br/>日志在轮转前可补齐"]
+    q -- "模式 B" --> b1["Gateway 照常写 Kafka"]
+    b1 --> b2["otel-writer 暂停消费 / 重试"]
+    b2 --> ok2["恢复后从 offset 继续消费<br/>按 Kafka 保留期无丢失"]

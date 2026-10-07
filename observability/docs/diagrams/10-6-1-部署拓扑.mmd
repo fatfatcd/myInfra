@@ -1,0 +1,48 @@
+flowchart TB
+    subgraph c135["集群 fab-k8s-135"]
+        direction TB
+        cp2["control plane ×3<br/>RKE2 1.35 / SUSE"]
+        subgraph w2["worker 节点 ×N"]
+            app2["业务 Pod"]
+            ag2["otel-agent<br/>DaemonSet"]
+        end
+        gw2["otel-gateway ×3"]
+    end
+    subgraph c128["集群 fab-k8s-128"]
+        direction TB
+        cp1["control plane ×3<br/>RKE2 1.28 / CentOS 7.9"]
+        subgraph w1["worker 节点 ×N"]
+            app1["业务 Pod"]
+            ag1["otel-agent<br/>DaemonSet"]
+        end
+        gw1["otel-gateway ×3<br/>可调度至 infra 节点"]
+        ksn["KubeSphere 3.4.1<br/>Fluent Bit（过渡）"]
+    end
+    subgraph backend["后端区（集群外）"]
+        direction TB
+        subgraph osc["OpenSearch 集群"]
+            osm["master ×3"]
+            osd["data ×N（hot）"]
+        end
+        kfc["Kafka ×3（KRaft，可选）"]
+        wrt["otel-writer ×2（可选）"]
+        vmc["VictoriaMetrics<br/>单机 / 集群版"]
+        gfa["Grafana ×2<br/>OpenSearch Dashboards ×2"]
+        lb["VIP / 负载均衡"]
+    end
+    hb["Harbor"]
+
+    app1 --> ag1 --> gw1
+    app2 --> ag2 --> gw2
+    gw1 --> lb
+    gw2 --> lb
+    ksn -.-> lb
+    lb --> osc
+    lb --> kfc
+    lb --> vmc
+    kfc --> wrt --> osc
+    wrt --> vmc
+    gfa --> osc
+    gfa --> vmc
+    hb -.-> c135
+    hb -.-> c128

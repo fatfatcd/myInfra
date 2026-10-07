@@ -1,0 +1,43 @@
+flowchart TB
+    subgraph L1["① 埋点层"]
+        api["OTel API + 注解<br/>业务手动埋点 @WithSpan"]
+        ja["OTel Java Agent<br/>自动埋点：HTTP / JDBC / Redis / Kafka / Feign"]
+        logfw["Logback / Log4j2<br/>JSON 输出，MDC 含 trace_id / span_id"]
+    end
+    subgraph L2["② 采集层（每节点 Agent）"]
+        r_otlp["OTLP Receiver<br/>traces / metrics"]
+        r_file["Filelog Receiver<br/>/var/log/pods"]
+        r_host["kubeletstats / hostmetrics<br/>节点与 Pod 指标"]
+        p_k8s["k8sattributes<br/>补充 Pod / NS / Workload 元数据"]
+    end
+    subgraph L3["③ 处理层（Gateway）"]
+        p_red["脱敏 / 过滤<br/>配方、工艺参数等敏感字段"]
+        p_samp["采样（预留）"]
+        p_route["按信号路由"]
+    end
+    subgraph L4["④ 缓冲层（可选）"]
+        kf["Kafka<br/>otlp_spans / otlp_logs / otlp_metrics"]
+    end
+    subgraph L5["⑤ 存储层"]
+        st_os["OpenSearch<br/>otel-v1-apm-span / otel-v1-logs"]
+        st_vm["VictoriaMetrics"]
+    end
+    subgraph L6["⑥ 消费层"]
+        osd["OpenSearch Dashboards<br/>日志检索 / Trace Analytics"]
+        gf["Grafana<br/>指标大盘 / 告警"]
+    end
+
+    api --> ja
+    ja -- "OTLP" --> r_otlp
+    logfw -- "stdout" --> r_file
+    r_otlp --> p_k8s
+    r_file --> p_k8s
+    r_host --> p_k8s
+    p_k8s -- "OTLP" --> p_red --> p_samp --> p_route
+    p_route -- "模式 A：直写" --> st_os
+    p_route -- "模式 A：直写" --> st_vm
+    p_route -. "模式 B" .-> kf
+    kf -. "otel-writer" .-> st_os
+    kf -. "otel-writer" .-> st_vm
+    st_os --> osd
+    st_vm --> gf
