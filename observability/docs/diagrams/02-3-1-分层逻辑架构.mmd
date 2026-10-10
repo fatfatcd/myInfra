@@ -23,8 +23,8 @@ flowchart TB
         st_vm["VictoriaMetrics"]
     end
     subgraph L6["⑥ 消费层"]
-        osd["OpenSearch Dashboards<br/>日志检索 / Trace Analytics"]
-        gf["Grafana<br/>指标大盘 / 告警"]
+        gf["Grafana 统一查询入口<br/>指标 / 日志 / Trace 跳转"]
+        osd["OpenSearch Dashboards<br/>日志深度检索 / ISM"]
     end
 
     api --> ja
@@ -39,5 +39,6 @@ flowchart TB
     p_route -. "模式 B" .-> kf
     kf -. "otel-writer" .-> st_os
     kf -. "otel-writer" .-> st_vm
-    st_os --> osd
+    st_os --> gf
     st_vm --> gf
+    st_os --> osd

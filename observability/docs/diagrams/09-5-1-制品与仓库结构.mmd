@@ -9,7 +9,7 @@ flowchart LR
         c5["clusters/<br/>fab-k8s-128.yaml / fab-k8s-135.yaml<br/>仅含集群名、端点等差异"]
         c6["backend/opensearch/<br/>ISM 策略、索引模板、角色"]
         c7["backend/writer/<br/>otel-writer systemd 配置"]
-        c8["dashboards/<br/>Grafana JSON"]
+        c8["grafana/<br/>dashboards/ + provisioning/<br/>数据源与关联"]
         r0 --> c0
         c0 --> c1 & c2 & c3 & c4
         r0 --> c5 & c6 & c7 & c8

@@ -1,0 +1,15 @@
+flowchart TB
+    subgraph s1["① 指标 · VM"]
+        direction LR
+        a["Grafana 大盘告警<br/>order-service P99 > 2s"] --> b["点击 data link<br/>打开慢 Trace 列表"]
+    end
+    subgraph s2["② 链路 · OS-Traces"]
+        direction LR
+        c["Explore 中选择 Trace<br/>查看瀑布图"] --> d["定位慢 Span<br/>stock-service JDBC 1.8s"]
+    end
+    subgraph s3["③ 日志 · OS-Logs"]
+        direction LR
+        e["correlation 跳转 Explore<br/>按 traceId 检索"] --> f["看到 SQL 超时日志<br/>与 Pod / 节点信息"]
+    end
+    s1 -->|service + 时间范围| s2
+    s2 -->|traceId| s3

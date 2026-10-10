@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph gf["Grafana 统一入口"]
+        direction LR
+        m["指标大盘<br/>数据源 VM<br/>RED / 告警"]
+        t["Explore：Trace<br/>数据源 OS-Traces<br/>列表 / 瀑布图"]
+        l["Explore：日志<br/>数据源 OS-Logs"]
+        n["服务拓扑<br/>Node Graph（二期）"]
+    end
+    osd["OpenSearch Dashboards<br/>深度检索 / ISM"]
+
+    m -- "J1 data link<br/>job + 时间范围 + 阈值" --> t
+    m -- "J2 data link<br/>job + ERROR" --> l
+    l -- "J3 correlation<br/>traceId（flags=1）" --> t
+    t -- "J4 correlation<br/>traceId，±2s" --> l
+    l -- "J5 external correlation<br/>service.name" --> m
+    n -- "J6 节点 data link" --> m
+    l -. "复杂检索" .-> osd
